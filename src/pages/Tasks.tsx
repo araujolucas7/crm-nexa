@@ -7,17 +7,47 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CheckIcon, Clock, MoreHorizontal } from "lucide-react";
+import { CheckIcon, Clock, MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TaskForm } from "@/components/Tasks/TaskForm";
+import { useState } from "react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const Tasks = () => {
-  const { tasks, updateTaskStatus } = useTasks();
+  const { tasks, updateTaskStatus, deleteTask } = useTasks();
+  const [taskFormOpen, setTaskFormOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<typeof tasks[0] | undefined>(undefined);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   
   // Group tasks by status
   const tasksByStatus = {
     [TaskStatus.TODO]: tasks.filter(task => task.status === TaskStatus.TODO),
     [TaskStatus.IN_PROGRESS]: tasks.filter(task => task.status === TaskStatus.IN_PROGRESS),
     [TaskStatus.DONE]: tasks.filter(task => task.status === TaskStatus.DONE),
+  };
+  
+  const handleEditTask = (task: typeof tasks[0]) => {
+    setSelectedTask(task);
+    setTaskFormOpen(true);
+  };
+  
+  const handleDeleteTask = (taskId: string) => {
+    setTaskToDelete(taskId);
+    setDeleteConfirmOpen(true);
+  };
+  
+  const confirmDeleteTask = () => {
+    if (taskToDelete) {
+      deleteTask(taskToDelete);
+      setTaskToDelete(null);
+    }
+    setDeleteConfirmOpen(false);
+  };
+  
+  const handleAddTask = () => {
+    setSelectedTask(undefined);
+    setTaskFormOpen(true);
   };
   
   // Get priority class
@@ -53,6 +83,9 @@ const Tasks = () => {
       <div className="p-6 max-w-7xl mx-auto w-full space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">Tarefas</h1>
+          <Button onClick={handleAddTask}>
+            <Plus className="mr-2 h-4 w-4" /> Nova Tarefa
+          </Button>
         </div>
         
         <Tabs defaultValue="todo" className="w-full">
@@ -90,6 +123,12 @@ const Tasks = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem 
+                              onClick={() => handleEditTask(task)}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
                               onClick={() => updateTaskStatus(task.id, TaskStatus.IN_PROGRESS)}
                             >
                               Iniciar Tarefa
@@ -98,6 +137,13 @@ const Tasks = () => {
                               onClick={() => updateTaskStatus(task.id, TaskStatus.DONE)}
                             >
                               Marcar como Concluída
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -150,6 +196,12 @@ const Tasks = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem 
+                              onClick={() => handleEditTask(task)}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
                               onClick={() => updateTaskStatus(task.id, TaskStatus.TODO)}
                             >
                               Voltar para A Fazer
@@ -158,6 +210,13 @@ const Tasks = () => {
                               onClick={() => updateTaskStatus(task.id, TaskStatus.DONE)}
                             >
                               Marcar como Concluída
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -215,9 +274,22 @@ const Tasks = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem 
+                              onClick={() => handleEditTask(task)}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
                               onClick={() => updateTaskStatus(task.id, TaskStatus.TODO)}
                             >
                               Reabrir Tarefa
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -243,6 +315,31 @@ const Tasks = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Task Form Dialog */}
+      <TaskForm 
+        open={taskFormOpen} 
+        onOpenChange={setTaskFormOpen} 
+        task={selectedTask}
+      />
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir tarefa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteTask} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 };
