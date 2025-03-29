@@ -7,11 +7,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CheckIcon, Clock, MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
+import { CheckIcon, Clock, MoreHorizontal, Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskForm } from "@/components/Tasks/TaskForm";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { TaskDetails } from "@/components/Tasks/TaskDetails";
 
 const Tasks = () => {
   const { tasks, updateTaskStatus, deleteTask } = useTasks();
@@ -19,6 +20,8 @@ const Tasks = () => {
   const [selectedTask, setSelectedTask] = useState<typeof tasks[0] | undefined>(undefined);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [taskDetailsOpen, setTaskDetailsOpen] = useState(false);
+  const [taskToView, setTaskToView] = useState<typeof tasks[0] | null>(null);
   
   // Group tasks by status
   const tasksByStatus = {
@@ -48,6 +51,11 @@ const Tasks = () => {
   const handleAddTask = () => {
     setSelectedTask(undefined);
     setTaskFormOpen(true);
+  };
+  
+  const handleViewTaskDetails = (task: typeof tasks[0]) => {
+    setTaskToView(task);
+    setTaskDetailsOpen(true);
   };
   
   // Get priority class
@@ -164,9 +172,14 @@ const Tasks = () => {
                           })}
                         </span>
                       </div>
-                      <div className={`text-xs font-medium ${getPriorityClass(task.priority)}`}>
-                        Prioridade: {getPriorityLabel(task.priority)}
-                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2"
+                        onClick={() => handleViewTaskDetails(task)}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" /> Detalhes
+                      </Button>
                     </CardFooter>
                   </Card>
                 ))}
@@ -237,9 +250,14 @@ const Tasks = () => {
                           })}
                         </span>
                       </div>
-                      <div className={`text-xs font-medium ${getPriorityClass(task.priority)}`}>
-                        Prioridade: {getPriorityLabel(task.priority)}
-                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2"
+                        onClick={() => handleViewTaskDetails(task)}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" /> Detalhes
+                      </Button>
                     </CardFooter>
                   </Card>
                 ))}
@@ -307,6 +325,14 @@ const Tasks = () => {
                           Concluída
                         </span>
                       </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2"
+                        onClick={() => handleViewTaskDetails(task)}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" /> Detalhes
+                      </Button>
                     </CardFooter>
                   </Card>
                 ))}
@@ -323,6 +349,13 @@ const Tasks = () => {
         task={selectedTask}
       />
       
+      {/* Task Details Dialog */}
+      <TaskDetails
+        task={taskToView}
+        open={taskDetailsOpen}
+        onOpenChange={setTaskDetailsOpen}
+      />
+      
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
@@ -334,7 +367,7 @@ const Tasks = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteTask} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={confirmDeleteDeal} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

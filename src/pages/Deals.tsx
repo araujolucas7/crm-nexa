@@ -1,4 +1,3 @@
-
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { DealForm } from "@/components/Deals/DealForm";
 import { useDeals } from "@/contexts/DealContext";
@@ -33,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DealDetails } from "@/components/Deals/DealDetails";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -47,6 +47,8 @@ const Deals = () => {
   const [selectedDeal, setSelectedDeal] = useState<typeof deals[0] | undefined>(undefined);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [dealToDelete, setDealToDelete] = useState<string | null>(null);
+  const [dealDetailsOpen, setDealDetailsOpen] = useState(false);
+  const [dealToView, setDealToView] = useState<typeof deals[0] | null>(null);
   
   // Group deals by stage
   const dealsByStage = {
@@ -76,6 +78,11 @@ const Deals = () => {
   const handleAddDeal = () => {
     setSelectedDeal(undefined);
     setDealFormOpen(true);
+  };
+  
+  const handleViewDealDetails = (deal: typeof deals[0]) => {
+    setDealToView(deal);
+    setDealDetailsOpen(true);
   };
   
   return (
@@ -160,7 +167,12 @@ const Deals = () => {
                           locale: ptBR,
                         })}
                       </span>
-                      <Button variant="ghost" size="sm" className="h-6 px-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2"
+                        onClick={() => handleViewDealDetails(deal)}
+                      >
                         <ExternalLink className="h-3 w-3 mr-1" /> Detalhes
                       </Button>
                     </CardFooter>
@@ -232,7 +244,12 @@ const Deals = () => {
                           locale: ptBR,
                         })}
                       </span>
-                      <Button variant="ghost" size="sm" className="h-6 px-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2"
+                        onClick={() => handleViewDealDetails(deal)}
+                      >
                         <ExternalLink className="h-3 w-3 mr-1" /> Detalhes
                       </Button>
                     </CardFooter>
@@ -301,7 +318,12 @@ const Deals = () => {
                           locale: ptBR,
                         })}
                       </span>
-                      <Button variant="ghost" size="sm" className="h-6 px-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2"
+                        onClick={() => handleViewDealDetails(deal)}
+                      >
                         <ExternalLink className="h-3 w-3 mr-1" /> Detalhes
                       </Button>
                     </CardFooter>
@@ -318,6 +340,13 @@ const Deals = () => {
         open={dealFormOpen} 
         onOpenChange={setDealFormOpen} 
         deal={selectedDeal}
+      />
+      
+      {/* Deal Details Dialog */}
+      <DealDetails 
+        deal={dealToView} 
+        open={dealDetailsOpen} 
+        onOpenChange={setDealDetailsOpen} 
       />
       
       {/* Delete Confirmation Dialog */}
